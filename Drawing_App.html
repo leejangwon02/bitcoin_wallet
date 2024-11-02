@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luxury Drawing App</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e2024, #17181c);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            touch-action: none;
+        }
+
+        .title {
+            color: #fff;
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            padding-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 500px;
+            background: #fff;
+            border-radius: 15px;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #00c6fb, #005bea);
+            box-shadow: 0 5px 15px rgba(0, 98, 234, 0.4);
+        }
+
+        .btn-clear {
+            background: linear-gradient(135deg, #ff6b6b, #ee5253);
+            box-shadow: 0 5px 15px rgba(238, 82, 83, 0.4);
+        }
+
+        input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            background: none;
+            cursor: pointer;
+        }
+
+        input[type="range"] {
+            width: 100px;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #fff;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 30px;
+            background: rgba(0, 198, 251, 0.9);
+            color: #fff;
+            border-radius: 10px;
+            transform: translateX(200%);
+            transition: transform 0.3s ease;
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+        }
+
+        .status.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .control-group {
+                width: 100%;
+                justify-content: center;
+            }
+
+            canvas {
+                height: 400px;
+            }
+
+            .title {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">Drawing App</h1>
+    
+    <div class="container">
+        <div class="canvas-container">
+            <canvas id="drawingCanvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <button class="btn" onclick="changeMode('brush')">
+                    <i class="fas fa-paint-brush"></i> 브러시
+                </button>
+                <button class="btn" onclick="changeMode('eraser')">
+                    <i class="fas fa-eraser"></i> 지우개
+                </button>
+            </div>
+
+            <div class="control-group">
+                <input type="color" id="colorPicker" onchange="updateColor(this.value)">
+                <div class="color-preview" id="colorPreview"></div>
+                <input type="range" id="sizeSlider" min="1" max="50" value="5" onchange="updateSize(this.value)">
+            </div>
+
+            <div class="control-group">
+                <button class="btn btn-save" onclick="saveCanvas()">
+                    <i class="fas fa-save"></i> 저장
+                </button>
+                <button class="btn btn-clear" onclick="clearCanvas()">
+                    <i class="fas fa-trash-alt"></i> 전체 지우기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="status" class="status">저장되었습니다!</div>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        const colorPreview = document.getElementById('colorPreview');
+        let isDrawing = false;
+        let currentColor = '#000000';
+        let currentSize = 5;
+        let currentMode = 'brush';
+        let lastX = 0;
+        let lastY = 0;
+
+        // 캔버스 크기 설정
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = canvas.clientHeight;
+        }
+
+        // 초기 설정
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        colorPreview.style.backgroundColor = currentColor;
+
+        // 이벤트 리스너
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // 터치 이벤트
+        canvas.addEventListener('touchstart', handleTouchStart);
+        canvas.addEventListener('touchmove', handleTouchMove);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getCoordinates(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+
+            const [x, y] = getCoordinates(e);
+            ctx.beginPath();
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = currentSize;
+            ctx.strokeStyle = currentMode === 'brush' ? currentColor : '#ffffff';
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+
+            [lastX, lastY] = [x, y];
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            return [
+                e.clientX - rect.left,
+                e.clientY - rect.top
+            ];
+        }
+
+        function updateColor(color) {
+            currentColor = color;
+            colorPreview.style.backgroundColor = color;
+            currentMode = 'brush';
+        }
+
+        function updateSize(size) {
+            currentSize = size;
+        }
+
+        function changeMode(mode) {
+            currentMode = mode;
+            if (mode === 'brush') {
+                canvas.style.cursor = 'crosshair';
+            } else {
+                canvas.style.cursor = 'cell';
+            }
+        }
+
+        function clearCanvas() {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            showStatus('캔버스가 지워졌습니다!');
+        }
+
+        function saveCanvas() {
+            const link = document.createElement('a');
+            link.download = 'drawing.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showStatus('이미지가 저장되었습니다!');
+        }
+
+        function showStatus(message) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.classList.add('show');
+            
+            setTimeout(() => {
+                status.classList.remove('show');
+            }, 2000);
+        }
+
+        // 초기화
+        clearCanvas();
+    </script>
+</body>
+</html>
