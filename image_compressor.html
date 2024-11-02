@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이미지 압축기</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/browser-image-compression/2.0.2/browser-image-compression.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .upload-area {
+            border: 3px dashed #7f8c8d;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #3498db;
+            background: rgba(52, 152, 219, 0.05);
+        }
+
+        .upload-area.dragging {
+            border-color: #2ecc71;
+            background: rgba(46, 204, 113, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            margin: 20px 0;
+        }
+
+        .quality-control {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .quality-label {
+            display: flex;
+            justify-content: space-between;
+            color: #34495e;
+            margin-bottom: 5px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #dfe6e9;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #3498db;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #2980b9;
+        }
+
+        .preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .preview-box {
+            flex: 1;
+            min-width: 280px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .preview-box h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .image-info {
+            font-size: 0.9em;
+            color: #576574;
+            margin-bottom: 5px;
+        }
+
+        .download-btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            margin-top: 10px;
+        }
+
+        .download-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .download-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .preview-box {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>이미지 압축기</h1>
+        <div class="upload-area" id="dropZone">
+            <div class="upload-icon">📁</div>
+            <p>이미지를 드래그하여 놓거나 클릭하여 선택하세요</p>
+            <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        </div>
+        
+        <div class="controls">
+            <div class="quality-control">
+                <div class="quality-label">
+                    <span>압축 품질</span>
+                    <span id="qualityValue">80%</span>
+                </div>
+                <input type="range" id="qualitySlider" min="0" max="100" value="80">
+            </div>
+        </div>
+
+        <div class="preview-container">
+            <div class="preview-box" id="originalPreview" style="display: none;">
+                <h3>원본 이미지</h3>
+                <img class="preview-image" id="originalImage">
+                <div class="image-info" id="originalInfo"></div>
+            </div>
+            
+            <div class="preview-box" id="compressedPreview" style="display: none;">
+                <h3>압축된 이미지</h3>
+                <img class="preview-image" id="compressedImage">
+                <div class="image-info" id="compressedInfo"></div>
+                <button class="download-btn" id="downloadBtn">다운로드</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const qualitySlider = document.getElementById('qualitySlider');
+        const qualityValue = document.getElementById('qualityValue');
+        const originalPreview = document.getElementById('originalPreview');
+        const compressedPreview = document.getElementById('compressedPreview');
+        const originalImage = document.getElementById('originalImage');
+        const compressedImage = document.getElementById('compressedImage');
+        const originalInfo = document.getElementById('originalInfo');
+        const compressedInfo = document.getElementById('compressedInfo');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        let originalFile = null;
+
+        // 드래그 앤 드롭 이벤트 처리
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragging');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragging');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragging');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        qualitySlider.addEventListener('input', (e) => {
+            qualityValue.textContent = `${e.target.value}%`;
+            if (originalFile) {
+                compressImage(originalFile);
+            }
+        });
+
+        async function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('이미지 파일만 업로드 가능합니다.');
+                return;
+            }
+
+            originalFile = file;
+            originalPreview.style.display = 'block';
+            compressedPreview.style.display = 'block';
+
+            // 원본 이미지 표시
+            const originalUrl = URL.createObjectURL(file);
+            originalImage.src = originalUrl;
+            originalInfo.textContent = `크기: ${formatBytes(file.size)}`;
+
+            await compressImage(file);
+        }
+
+        async function compressImage(file) {
+            try {
+                const options = {
+                    maxSizeMB: 1,
+                    maxWidthOrHeight: 1920,
+                    useWebWorker: true,
+                    quality: qualitySlider.value / 100
+                };
+
+                const compressedFile = await imageCompression(file, options);
+                const compressedUrl = URL.createObjectURL(compressedFile);
+                compressedImage.src = compressedUrl;
+                compressedInfo.textContent = `크기: ${formatBytes(compressedFile.size)} (${Math.round((1 - compressedFile.size / file.size) * 100)}% 감소)`;
+
+                downloadBtn.onclick = () => {
+                    const link = document.createElement('a');
+                    link.href = compressedUrl;
+                    link.download = `compressed_${file.name}`;
+                    link.click();
+                };
+            } catch (error) {
+                console.error(error);
+                alert('이미지 압축 중 오류가 발생했습니다.');
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html>
