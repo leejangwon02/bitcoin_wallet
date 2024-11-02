@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>그림판</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            touch-action: none;
+        }
+
+        .app-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            padding: 20px;
+            max-width: 95vw;
+            width: 800px;
+        }
+
+        .app-title {
+            font-size: 28px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .canvas-container {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            background: white;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            display: block;
+            background: white;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            padding: 10px 0;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .control-label {
+            font-size: 15px;
+            color: #764ba2;
+            font-weight: 500;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 10px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 180px;
+            height: 8px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border: 2px solid #764ba2;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .preview {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .line-preview {
+            width: 100px;
+            height: 2px;
+            background: #000;
+            border-radius: 1px;
+            margin: 5px 0;
+        }
+
+        .size-value {
+            font-size: 14px;
+            color: #764ba2;
+            font-weight: 500;
+        }
+
+        .tools {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .tool-btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 10px;
+            background: white;
+            color: #764ba2;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .tool-btn.active {
+            background: #764ba2;
+            color: white;
+            box-shadow: 0 4px 8px rgba(118, 75, 162, 0.3);
+        }
+
+        .tool-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 15px;
+            }
+
+            .controls {
+                gap: 10px;
+            }
+
+            .control-group {
+                padding: 8px 15px;
+            }
+
+            .tools {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <h1 class="app-title">✨ 그림판 ✨</h1>
+
+        <div class="tools">
+            <button class="tool-btn active" data-tool="brush">
+                <i class="fas fa-paint-brush"></i> 브러시
+            </button>
+            <button class="tool-btn" data-tool="eraser">
+                <i class="fas fa-eraser"></i> 지우개
+            </button>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="drawingCanvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <div class="control-group" id="colorGroup">
+                <span class="control-label">색상</span>
+                <input type="color" id="colorPicker" value="#000000">
+            </div>
+            
+            <div class="control-group">
+                <span class="control-label">굵기</span>
+                <input type="range" id="lineWidth" min="1" max="50" value="5">
+                <div class="preview">
+                    <div id="linePreview" class="line-preview"></div>
+                    <span id="lineWidthValue" class="size-value">5px</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        const colorPicker = document.getElementById('colorPicker');
+        const lineWidthInput = document.getElementById('lineWidth');
+        const linePreview = document.getElementById('linePreview');
+        const lineWidthValue = document.getElementById('lineWidthValue');
+        const colorGroup = document.getElementById('colorGroup');
+
+        let currentTool = 'brush';
+        let lastColor = '#000000';
+
+        // 도구 선택 버튼 이벤트
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentTool = btn.dataset.tool;
+                
+                // 지우개 선택 시 색상 선택기 숨기기
+                if (currentTool === 'eraser') {
+                    colorGroup.style.visibility = 'hidden';
+                    lastColor = colorPicker.value;
+                    updateLinePreview('#ffffff');
+                } else {
+                    colorGroup.style.visibility = 'visible';
+                    updateLinePreview(lastColor);
+                }
+            });
+        });
+
+        // 캔버스 크기 설정
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = window.innerHeight * 0.6;
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // 초기 설정
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        function updateLinePreview(color) {
+            const width = lineWidthInput.value;
+            linePreview.style.height = width + 'px';
+            linePreview.style.background = color || colorPicker.value;
+            lineWidthValue.textContent = width + 'px';
+        }
+
+        function getPosition(event) {
+            const rect = canvas.getBoundingClientRect();
+            let x, y;
+            
+            if (event.type.includes('touch')) {
+                x = event.touches[0].clientX - rect.left;
+                y = event.touches[0].clientY - rect.top;
+            } else {
+                x = event.clientX - rect.left;
+                y = event.clientY - rect.top;
+            }
+            
+            return [x, y];
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            [lastX, lastY] = getPosition(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            
+            const [currentX, currentY] = getPosition(e);
+            
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(currentX, currentY);
+            ctx.strokeStyle = currentTool === 'eraser' ? 'white' : colorPicker.value;
+            ctx.lineWidth = lineWidthInput.value;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            
+            [lastX, lastY] = [currentX, currentY];
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        // 마우스 이벤트
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        // 터치 이벤트
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('touchcancel', stopDrawing);
+        
+        // 컨트롤 이벤트
+        colorPicker.addEventListener('input', () => updateLinePreview());
+        lineWidthInput.addEventListener('input', () => updateLinePreview());
+
+        // 초기 미리보기 업데이트
+        updateLinePreview();
+    </script>
+</body>
+</html>
