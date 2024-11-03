@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>고급 영어 회화 연습</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            font-family: 'Arial', sans-serif;
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 90%;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            background: linear-gradient(to right, #fff, #ddd);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .sentence-box {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .english {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+
+        .korean {
+            font-size: 1.2rem;
+            color: #eee;
+        }
+
+        button {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .glow {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            filter: blur(20px);
+            animation: glowMove 10s infinite linear;
+        }
+
+        @keyframes glowMove {
+            0% { transform: translate(-50%, -50%) rotate(0deg) translateX(100px); }
+            100% { transform: translate(-50%, -50%) rotate(360deg) translateX(100px); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Premium English Conversation</h1>
+        <div class="sentence-box animate__animated animate__fadeIn">
+            <div class="glow"></div>
+            <div class="english" id="englishText"></div>
+            <div class="korean" id="koreanText"></div>
+        </div>
+        <button onclick="getNewSentence()" class="animate__animated animate__pulse animate__infinite">새로운 문장 보기</button>
+    </div>
+
+    <script>
+        const conversations = [
+            {
+                eng: "Would you mind helping me with this?",
+                kor: "이것 좀 도와주시겠어요?"
+            },
+            {
+                eng: "I couldn't agree with you more.",
+                kor: "당신 의견에 전적으로 동의해요."
+            },
+            {
+                eng: "That sounds like a great idea!",
+                kor: "정말 좋은 생각인 것 같아요!"
+            },
+            {
+                eng: "I see what you mean.",
+                kor: "무슨 말씀이신지 이해했어요."
+            },
+            {
+                eng: "How have you been lately?",
+                kor: "요즘 어떻게 지내세요?"
+            },
+            {
+                eng: "I'm looking forward to seeing you.",
+                kor: "당신을 만나기를 기대하고 있어요."
+            },
+            {
+                eng: "Could you explain that again?",
+                kor: "다시 한 번 설명해 주시겠어요?"
+            },
+            {
+                eng: "What do you think about this?",
+                kor: "이것에 대해 어떻게 생각하세요?"
+            },
+            {
+                eng: "Let's keep in touch!",
+                kor: "연락하면서 지내요!"
+            },
+            {
+                eng: "That's exactly what I was thinking.",
+                kor: "저도 정확히 그렇게 생각하고 있었어요."
+            }
+        ];
+
+        function getNewSentence() {
+            const sentenceBox = document.querySelector('.sentence-box');
+            sentenceBox.classList.remove('animate__fadeIn');
+            void sentenceBox.offsetWidth;
+            sentenceBox.classList.add('animate__fadeIn');
+
+            const randomIndex = Math.floor(Math.random() * conversations.length);
+            document.getElementById('englishText').textContent = conversations[randomIndex].eng;
+            document.getElementById('koreanText').textContent = conversations[randomIndex].kor;
+        }
+
+        // 초기 문장 로드
+        getNewSentence();
+    </script>
+</body>
+</html>
