@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retro QR Code Generator</title>
+  <style>
+    body {
+      font-family: 'VT323', monospace;
+      background-color: #000;
+      color: #00ff00;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .card {
+      background-color: #000;
+      padding: 2rem;
+      border: 2px solid #00ff00;
+      width: 80%;
+      max-width: 500px;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    input, button {
+      padding: 0.5rem 1rem;
+      font-size: 1.2rem;
+      font-family: 'VT323', monospace;
+      border: 2px solid #00ff00;
+      background-color: #000;
+      color: #00ff00;
+      width: 100%;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    #qr-code {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: center;
+    }
+
+    #download-link {
+      margin-top: 1rem;
+      text-align: center;
+    }
+
+    #download-link a {
+      color: #00ff00;
+      text-decoration: underline;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>Retro QR Code</h1>
+      <form id="qr-form">
+        <input type="text" id="url" name="url" placeholder="Enter URL" required>
+        <button type="submit">Generate QR Code</button>
+      </form>
+      <div id="qr-code"></div>
+      <div id="download-link"></div>
+    </div>
+  </div>
+
+  <script>
+    const qrForm = document.getElementById('qr-form');
+    const qrCodeContainer = document.getElementById('qr-code');
+    const downloadLinkContainer = document.getElementById('download-link');
+
+    qrForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const url = document.getElementById('url').value;
+      generateQRCode(url);
+    });
+
+    function generateQRCode(url) {
+      const qr = new QRious({
+        value: url,
+        size: 256,
+        foreground: '#00ff00',
+        background: '#000'
+      });
+
+      qrCodeContainer.innerHTML = '';
+      qrCodeContainer.appendChild(qr.image);
+
+      const downloadLink = document.createElement('a');
+      downloadLink.href = qr.toDataURL('image/png');
+      downloadLink.download = 'qr-code.png';
+      downloadLink.textContent = 'Download QR Code';
+
+      downloadLinkContainer.innerHTML = '';
+      downloadLinkContainer.appendChild(downloadLink);
+    }
+  </script>
+</body>
+</html>
