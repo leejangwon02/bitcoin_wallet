@@ -30,22 +30,31 @@
     const App = () => {
       const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
       const [answers, setAnswers] = React.useState([]);
+      const [isCorrect, setIsCorrect] = React.useState(false);
 
       const questions = [
         {
-          question: "What is the capital of France?",
-          answer: "Paris"
+          question: "내 생일은?(0000/00/00)",
+          answer: "2002/04/23"
         },
         {
-          question: "What is the largest ocean in the world?",
-          answer: "Pacific Ocean"
+          question: "전역 날짜는?(0000/00/00)",
+          answer: "2025/07/07"
         },
         // Add 8 more questions here
       ];
 
       const handleAnswerSubmit = (answer) => {
-        setAnswers([...answers, answer]);
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        if (answer.toLowerCase() === questions[currentQuestionIndex].answer.toLowerCase()) {
+          setAnswers([...answers, answer]);
+          setIsCorrect(true);
+          setTimeout(() => {
+            setCurrentQuestionIndex(currentQuestionIndex + 1);
+            setIsCorrect(false);
+          }, 1000);
+        } else {
+          setIsCorrect(false);
+        }
       };
 
       const totalCorrect = answers.filter((answer, i) => answer.toLowerCase() === questions[i].answer.toLowerCase()).length;
@@ -57,7 +66,7 @@
               <h2 className="text-2xl font-bold mb-4">{questions[currentQuestionIndex].question}</h2>
               <input
                 type="text"
-                className="w-full bg-white shadow-md rounded-md py-2 px-4 mb-4"
+                className={`w-full bg-white shadow-md rounded-md py-2 px-4 mb-4 ${isCorrect ? 'border-green-500' : 'border-red-500'}`}
                 placeholder="Enter your answer"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
@@ -66,6 +75,7 @@
                   }
                 }}
               />
+              {!isCorrect && <p className="text-red-500">Incorrect. Please try again.</p>}
             </div>
           ) : (
             <div className="result-card w-full max-w-md">
