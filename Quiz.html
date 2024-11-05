@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz App</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.16/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .question-card {
+      background-color: #f1f5f9;
+      border-radius: 0.5rem;
+      padding: 2rem;
+    }
+
+    .result-card {
+      background-color: #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const App = () => {
+      const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0);
+      const [answers, setAnswers] = React.useState([]);
+
+      const questions = [
+        {
+          question: "What is the capital of France?",
+          answer: "Paris"
+        },
+        {
+          question: "What is the largest ocean in the world?",
+          answer: "Pacific Ocean"
+        },
+        // Add 8 more questions here
+      ];
+
+      const handleAnswerSubmit = (answer) => {
+        setAnswers([...answers, answer]);
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+      };
+
+      const totalCorrect = answers.filter((answer, i) => answer.toLowerCase() === questions[i].answer.toLowerCase()).length;
+
+      return (
+        <div className="flex justify-center items-center h-screen">
+          {currentQuestionIndex < questions.length ? (
+            <div className="question-card w-full max-w-md">
+              <h2 className="text-2xl font-bold mb-4">{questions[currentQuestionIndex].question}</h2>
+              <input
+                type="text"
+                className="w-full bg-white shadow-md rounded-md py-2 px-4 mb-4"
+                placeholder="Enter your answer"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleAnswerSubmit(e.target.value);
+                    e.target.value = '';
+                  }
+                }}
+              />
+            </div>
+          ) : (
+            <div className="result-card w-full max-w-md">
+              <h2 className="text-2xl font-bold mb-4">
+                You got {totalCorrect} out of {questions.length} correct!
+              </h2>
+              <img src="/api/placeholder/600/400" alt="Congratulations" className="mb-4" />
+              <p>Thank you for completing the quiz!</p>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
