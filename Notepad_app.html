@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jangwon Web-based Notepad App</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --danger-color: #e74c3c;
+            --danger-dark: #c0392b;
+            --warning-color: #f39c12;
+            --warning-dark: #d35400;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --gray-text: #7f8c8d;
+            --border-radius: 8px;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 0;
+            margin: 0;
+        }
+
+        .app-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .subtitle {
+            color: var(--gray-text);
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        #note-title {
+            width: 100%;
+            font-size: 1.2em;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        #note-content {
+            width: 100%;
+            height: 250px;
+            padding: 12px 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            resize: vertical;
+            font-family: inherit;
+            transition: var(--transition);
+            line-height: 1.6;
+        }
+
+        #note-title:focus, #note-content:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        button svg {
+            margin-right: 8px;
+        }
+
+        #save-note {
+            background-color: var(--primary-color);
+            color: white;
+            flex-grow: 1;
+        }
+
+        #save-note:hover {
+            background-color: var(--primary-dark);
+            box-shadow: var(--shadow-hover);
+        }
+
+        #delete-note {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        #delete-note:hover {
+            background-color: var(--danger-dark);
+            box-shadow: var(--shadow-hover);
+        }
+
+        #clear-all {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        #clear-all:hover {
+            background-color: var(--warning-dark);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .notes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark-text);
+        }
+
+        .note-count {
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 0.9rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        #note-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .note-item {
+            background-color: #fff;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: var(--transition);
+            border-top: 4px solid var(--primary-color);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .note-item:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .note-item h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            color: var(--dark-text);
+            word-break: break-word;
+        }
+
+        .note-content {
+            color: var(--gray-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            flex-grow: 1;
+            margin-bottom: 15px;
+            word-break: break-word;
+        }
+
+        .note-date {
+            font-size: 0.8rem;
+            color: var(--gray-text);
+            display: flex;
+            align-items: center;
+        }
+
+        .note-date svg {
+            margin-right: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--gray-text);
+            padding: 40px 20px;
+            background-color: rgba(0, 0, 0, 0.02);
+            border-radius: var(--border-radius);
+            font-size: 1.1rem;
+        }
+
+        .empty-state svg {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 15px;
+            color: var(--gray-text);
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                padding: 10px;
+            }
+            
+            #note-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+
+        /* 애니메이션 효과 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .note-item {
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        /* 다크 모드 토글 버튼 */
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            z-index: 100;
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        /* 다크 모드 */
+        body.dark-mode {
+            --light-bg: #1a1a2e;
+            --dark-text: #e6e6e6;
+            --gray-text: #a0a0a0;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 0 10px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        body.dark-mode .container,
+        body.dark-mode .note-item {
+            background-color: #16213e;
+            border-color: #0f3460;
+        }
+
+        body.dark-mode #note-title,
+        body.dark-mode #note-content {
+            background-color: #26294b;
+            border-color: #0f3460;
+            color: var(--dark-text);
+        }
+
+        body.dark-mode .empty-state {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Jangwon Web-based Notepad App</h1>
+            <p class="subtitle">내용은 서버에 올라가는게 아니라 개인 컴퓨터에만 저장됩니다.(=다른 사람은 못 봄, 개인용 임.)</p>
+        </header>
+        
+        <div class="container">
+            <div class="input-group">
+                <label for="note-title">제목</label>
+                <input type="text" id="note-title" placeholder="메모의 제목을 입력하세요">
+            </div>
+            
+            <div class="input-group">
+                <label for="note-content">내용</label>
+                <textarea id="note-content" placeholder="메모의 내용을 입력하세요"></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button id="save-note">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    저장하기
+                </button>
+                <button id="delete-note">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 6h18"></path>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    삭제하기
+                </button>
+                <button id="clear-all">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                    </svg>
+                    전체 삭제
+                </button>
+            </div>
+        </div>
+        
+        <div class="container">
+            <div class="notes-header">
+                <h2>저장된 메모</h2>
+                <span class="note-count" id="note-count">0개</span>
+            </div>
+            <div id="note-list"></div>
+        </div>
+    </div>
+    
+    <button class="theme-toggle" id="theme-toggle">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+    </button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const titleInput = document.getElementById('note-title');
+            const contentTextarea = document.getElementById('note-content');
+            const saveButton = document.getElementById('save-note');
+            const deleteButton = document.getElementById('delete-note');
+            const clearAllButton = document.getElementById('clear-all');
+            const noteList = document.getElementById('note-list');
+            const noteCountElement = document.getElementById('note-count');
+            const themeToggle = document.getElementById('theme-toggle');
+            
+            let currentNoteId = null;
+            
+            // 다크 모드 설정
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                themeToggle.innerHTML = `
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                `;
+            }
+            
+            themeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                localStorage.setItem('darkMode', isDark);
+                
+                // 아이콘 변경
+                if (isDark) {
+                    themeToggle.innerHTML = `
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                    `;
+                } else {
+                    themeToggle.innerHTML = `
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"></circle>
+                            <line x1="12" y1="1" x2="12" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="23"></line>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                            <line x1="1" y1="12" x2="3" y2="12"></line>
+                            <line x1="21" y1="12" x2="23" y2="12"></line>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                        </svg>
+                    `;
+                }
+            });
+            
+            // 저장된 메모 불러오기
+            loadNotes();
+            
+            // 저장 버튼 클릭 이벤트
+            saveButton.addEventListener('click', function() {
+                const title = titleInput.value.trim();
+                const content = contentTextarea.value.trim();
+                
+                if (!title || !content) {
+                    alert('제목과 내용을 모두 입력해주세요.');
+                    return;
+                }
+                
+                const note = {
+                    id: currentNoteId || Date.now().toString(),
+                    title: title,
+                    content: content,
+                    date: new Date().toLocaleString()
+                };
+                
+                saveNote(note);
+                resetForm();
+                loadNotes();
+                
+                // 저장 성공 알림
+                showNotification('메모가 저장되었습니다!');
+            });
+            
+            // 삭제 버튼 클릭 이벤트
+            deleteButton.addEventListener('click', function() {
+                if (currentNoteId) {
+                    deleteNote(currentNoteId);
+                    resetForm();
+                    loadNotes();
+                    
+                    // 삭제 성공 알림
+                    showNotification('메모가 삭제되었습니다!', 'warning');
+                } else {
+                    alert('삭제할 메모를 선택해주세요.');
+                }
+            });
+            
+            // 전체 삭제 버튼 클릭 이벤트
+            clearAllButton.addEventListener('click', function() {
+                if (confirm('모든 메모를 삭제하시겠습니까?')) {
+                    localStorage.removeItem('notes');
+                    resetForm();
+                    loadNotes();
+                    
+                    // 전체 삭제 성공 알림
+                    showNotification('모든 메모가 삭제되었습니다!', 'danger');
+                }
+            });
+            
+            // 메모 저장 함수
+            function saveNote(note) {
+                const notes = getNotes();
+                
+                // 기존 메모 업데이트 또는 새 메모 추가
+                const existingNoteIndex = notes.findIndex(item => item.id === note.id);
+                if (existingNoteIndex !== -1) {
+                    notes[existingNoteIndex] = note;
+                } else {
+                    notes.push(note);
+                }
+                
+                localStorage.setItem('notes', JSON.stringify(notes));
+            }
+            
+            // 메모 삭제 함수
+            function deleteNote(id) {
+                let notes = getNotes();
+                notes = notes.filter(note => note.id !== id);
+                localStorage.setItem('notes', JSON.stringify(notes));
+            }
+            
+            // 저장된 메모 불러오기 함수
+            function getNotes() {
+                const notesJson = localStorage.getItem('notes');
+                return notesJson ? JSON.parse(notesJson) : [];
+            }
+            
+            // 메모 목록 화면에 표시 함수
+            function loadNotes() {
+                const notes = getNotes();
+                noteList.innerHTML = '';
+                
+                // 메모 카운트 업데이트
+                noteCountElement.textContent = `${notes.length}개`;
+                
+                if (notes.length === 0) {
+                    noteList.innerHTML = `
+                        <div class="empty-state">
+                            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"></path>
+                            </svg>
+                            <p>저장된 메모가 없습니다.</p>
+                            <p>새로운 메모를 작성해보세요!</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // 최신 메모가 위에 오도록 정렬
+                notes.sort((a, b) => {
+                    return new Date(b.date) - new Date(a.date);
+                });
+                
+                notes.forEach(note => {
+                    const noteElement = document.createElement('div');
+                    noteElement.className = 'note-item';
+                    noteElement.dataset.id = note.id;
+                    
+                    noteElement.innerHTML = `
+                        <h3>${note.title}</h3>
+                        <div class="note-content">${note.content}</div>
+                        <div class="note-date">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            ${note.date}
+                        </div>
+                    `;
+                    
+                    noteElement.addEventListener('click', function() {
+                        loadNoteForEditing(note);
+                    });
+                    
+                    noteList.appendChild(noteElement);
+                });
+            }
+            
+            // 메모 수정을 위한 폼 로드 함수
+            function loadNoteForEditing(note) {
+                titleInput.value = note.title;
+                contentTextarea.value = note.content;
+                currentNoteId = note.id;
+                
+                // 폼으로 스크롤
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+                
+                // 입력 필드 포커스
+                titleInput.focus();
+            }
+            
+            // 폼 초기화 함수
+            function resetForm() {
+                titleInput.value = '';
+                contentTextarea.value = '';
+                currentNoteId = null;
+            }
+            
+            // 알림 표시 함수
+            function showNotification(message, type = 'success') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.style.position = 'fixed';
+                notification.style.top = '20px';
+                notification.style.left = '50%';
+                notification.style.transform = 'translateX(-50%)';
+                notification.style.backgroundColor = type === 'success' ? '#2ecc71' : 
+                                                   type === 'warning' ? '#f39c12' : '#e74c3c';
+                notification.style.color = 'white';
+                notification.style.padding = '12px 25px';
+                notification.style.borderRadius = '4px';
+                notification.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                notification.style.zIndex = '1000';
+                notification.style.transition = 'all 0.3s ease';
+                notification.style.opacity = '0';
+                notification.style.fontWeight = '600';
+                
+                notification.textContent = message;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '1';
+                }, 10);
+                
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 300);
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
