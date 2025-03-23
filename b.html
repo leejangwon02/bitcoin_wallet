@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>건물 쇼핑몰</title>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+        
+        header {
+            background-color: #212529;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .products {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .product-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        
+        .product-info {
+            padding: 15px;
+        }
+        
+        .product-title {
+            font-size: 18px;
+            margin: 0 0 10px 0;
+        }
+        
+        .product-location {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .product-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #0077cc;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+            max-height: 90%;
+            overflow-y: auto;
+        }
+        
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close-button:hover {
+            color: black;
+        }
+        
+        .detail-image {
+            width: 100%;
+            max-height: 350px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0077cc;
+            margin-bottom: 15px;
+        }
+        
+        .buy-button {
+            background-color: #0077cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .buy-button:hover {
+            background-color: #0056b3;
+        }
+        
+        .search-bar {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            font-size: 16px;
+        }
+        
+        .search-button {
+            background-color: #0077cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        
+        .tag {
+            display: inline-block;
+            background-color: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>프리미엄 건물 쇼핑몰</h1>
+        <p>당신의 다음 투자 기회를 찾아보세요</p>
+    </header>
+
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="검색어를 입력하세요...">
+            <button class="search-button">검색</button>
+        </div>
+
+        <div class="products" id="productContainer">
+            <!-- 제품들은 JavaScript로 추가될 예정입니다 -->
+        </div>
+    </div>
+
+    <!-- 상세 정보 모달 -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModal">&times;</span>
+            <div id="productDetail">
+                <!-- 상세 정보는 JavaScript로 추가될 예정입니다 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 건물 데이터
+        const buildings = [
+            {
+                id: 1,
+                name: "강남 프리미엄 오피스텔",
+                type: "상업용",
+                location: "서울특별시 강남구",
+                price: "50억원",
+                size: "500평",
+                year: "2020년",
+                description: "강남 중심부에 위치한 현대적인 디자인의 오피스텔입니다. 최고급 마감재와 스마트 홈 시스템을 갖추고 있으며, 교통 접근성이 뛰어납니다. 투자 가치가 높은 프리미엄 물건입니다.",
+                image: "/api/placeholder/800/600",
+                features: ["주차장", "24시간 보안", "옥상 정원", "피트니스 센터"]
+            },
+            {
+                id: 2,
+                name: "광화문 오피스 빌딩",
+                type: "상업용",
+                location: "서울특별시 종로구",
+                price: "120억원",
+                size: "1200평",
+                year: "2018년",
+                description: "광화문 중심부에 위치한 프라임 오피스 빌딩입니다. 지하철 역과 가까우며, 다양한 편의 시설을 갖추고 있습니다. 현재 97% 임대 중이며 안정적인 수익이 발생하고 있습니다.",
+                image: "/api/placeholder/800/600",
+                features: ["주차 시설", "로비 보안", "카페테리아", "옥상 테라스"]
+            },
+            {
+                id: 3,
+                name: "부산 해운대 복합 상가",
+                type: "상업용",
+                location: "부산광역시 해운대구",
+                price: "85억원",
+                size: "800평",
+                year: "2021년",
+                description: "해운대 관광지 인근에 위치한 복합 상가 건물입니다. 1층은 상업 시설, 2-5층은 오피스, 6-10층은 레지던스로 구성되어 있습니다. 연중 관광객이 많아 상업 시설의 임대 수요가 높습니다.",
+                image: "/api/placeholder/800/600",
+                features: ["해변 전망", "관광지 인접", "복합 용도", "최신 시설"]
+            },
+            {
+                id: 4,
+                name: "판교 IT 타워",
+                type: "상업용",
+                location: "경기도 성남시 분당구",
+                price: "70억원",
+                size: "650평",
+                year: "2019년",
+                description: "판교 테크노밸리 중심부에 위치한 최신식 IT 기업 전용 빌딩입니다. 첨단 기술이 적용된 스마트 빌딩으로, 현재 유명 IT 기업들이 입주해 있습니다. 안정적인 임대 수익과 함께 향후 가치 상승이 기대됩니다.",
+                image: "/api/placeholder/800/600",
+                features: ["스마트 빌딩", "고속 인터넷", "대형 주차장", "휴게 공간"]
+            },
+            {
+                id: 5,
+                name: "제주 리조트 건물",
+                type: "상업용",
+                location: "제주특별자치도 서귀포시",
+                price: "40억원",
+                size: "1000평",
+                year: "2022년",
+                description: "제주 서귀포시의 아름다운 해안가에 위치한 리조트 건물입니다. 객실 30개와 레스토랑, 수영장 등의 부대시설을 갖추고 있으며, 연중 관광객 수요가 많습니다. 운영 중인 사업체와 함께 매각 가능합니다.",
+                image: "/api/placeholder/800/600",
+                features: ["바다 전망", "수영장", "레스토랑", "스파"]
+            },
+            {
+                id: 6,
+                name: "대구 쇼핑몰 건물",
+                type: "상업용",
+                location: "대구광역시 중구",
+                price: "65억원",
+                size: "900평",
+                year: "2017년",
+                description: "대구 시내 중심가에 위치한 3층 규모의 쇼핑몰 건물입니다. 유동인구가 많은 상권에 위치하여 안정적인 임대 수익을 기대할 수 있습니다. 현재 100% 임대 완료 상태입니다.",
+                image: "/api/placeholder/800/600",
+                features: ["중심 상권", "높은 유동인구", "지하 주차장", "현대적 시설"]
+            }
+        ];
+
+        // 제품 카드 표시
+        function displayProducts() {
+            const productContainer = document.getElementById('productContainer');
+            
+            buildings.forEach(building => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <img src="${building.image}" alt="${building.name}" class="product-image">
+                    <div class="product-info">
+                        <h3 class="product-title">${building.name}</h3>
+                        <p class="product-location">${building.location}</p>
+                        <p class="product-price">${building.price}</p>
+                    </div>
+                `;
+                
+                productCard.addEventListener('click', () => {
+                    showProductDetail(building);
+                });
+                
+                productContainer.appendChild(productCard);
+            });
+        }
+
+        // 상세 정보 모달 표시
+        function showProductDetail(building) {
+            const modal = document.getElementById('productModal');
+            const detailContainer = document.getElementById('productDetail');
+            
+            detailContainer.innerHTML = `
+                <img src="${building.image}" alt="${building.name}" class="detail-image">
+                <h2>${building.name}</h2>
+                <p class="detail-price">${building.price}</p>
+                
+                <div class="detail-info">
+                    <div>
+                        <p><strong>위치:</strong> ${building.location}</p>
+                        <p><strong>유형:</strong> ${building.type}</p>
+                    </div>
+                    <div>
+                        <p><strong>면적:</strong> ${building.size}</p>
+                        <p><strong>건축년도:</strong> ${building.year}</p>
+                    </div>
+                </div>
+                
+                <div class="tags">
+                    ${building.features.map(feature => `<span class="tag">${feature}</span>`).join('')}
+                </div>
+                
+                <h3>상세 설명</h3>
+                <p>${building.description}</p>
+                
+                <button class="buy-button">문의하기</button>
+            `;
+            
+            modal.style.display = 'block';
+            
+            // 문의하기 버튼 이벤트
+            detailContainer.querySelector('.buy-button').addEventListener('click', () => {
+                alert(`${building.name}에 대한 문의가 접수되었습니다. 담당자가 연락드릴 예정입니다.`);
+                modal.style.display = 'none';
+            });
+        }
+
+        // 닫기 버튼 이벤트
+        document.getElementById('closeModal').addEventListener('click', () => {
+            document.getElementById('productModal').style.display = 'none';
+        });
+
+        // 모달 외부 클릭 시 닫기
+        window.addEventListener('click', (event) => {
+            const modal = document.getElementById('productModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // 검색 기능
+        document.querySelector('.search-button').addEventListener('click', () => {
+            const searchTerm = document.querySelector('.search-input').value.toLowerCase();
+            const productContainer = document.getElementById('productContainer');
+            productContainer.innerHTML = '';
+            
+            const filteredBuildings = buildings.filter(building => 
+                building.name.toLowerCase().includes(searchTerm) || 
+                building.location.toLowerCase().includes(searchTerm) ||
+                building.type.toLowerCase().includes(searchTerm)
+            );
+            
+            filteredBuildings.forEach(building => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <img src="${building.image}" alt="${building.name}" class="product-image">
+                    <div class="product-info">
+                        <h3 class="product-title">${building.name}</h3>
+                        <p class="product-location">${building.location}</p>
+                        <p class="product-price">${building.price}</p>
+                    </div>
+                `;
+                
+                productCard.addEventListener('click', () => {
+                    showProductDetail(building);
+                });
+                
+                productContainer.appendChild(productCard);
+            });
+        });
+
+        // 페이지 로드 시 제품 표시
+        document.addEventListener('DOMContentLoaded', () => {
+            displayProducts();
+        });
+    </script>
+</body>
+</html>
